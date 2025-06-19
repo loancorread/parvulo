@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jornada de Reflexión Pedagógica: Juego y Transición</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Soft Accents -->
+    <!-- Application Structure Plan: A single-page, vertically scrolling dashboard. The structure is thematic, not linear, divided into two main interactive blocks: "Juego y Aprendizaje" and "Transición Educativa". This design allows educators to focus on one topic at a time, engage with interactive tools (a radar chart for self-assessment, clickable diagrams for information exploration), and then move to the next. This is more user-friendly than the original document's format because it transforms passive reading into active exploration and self-reflection, making the complex pedagogical concepts more accessible and applicable. -->
+    <!-- Visualization & Content Choices: 
+        1. Principios Pedagógicos: Report Info -> Definitions of 8 principles. Goal -> Inform/Organize. Viz/Method -> Interactive grid of cards built with HTML/Tailwind. Interaction -> Click to expand and reveal details. Justification -> Avoids a long wall of text, encourages exploration. Library -> Vanilla JS.
+        2. Auto-evaluación de Principios: Report Info -> Reflective questions on principle strengths. Goal -> Compare/Analyze. Viz/Method -> Chart.js Radar Chart. Interaction -> Users click buttons to rate each principle, updating the chart instantly. Justification -> Makes the abstract reflection process visual and tangible, highlighting areas for focus. Library -> Chart.js.
+        3. Proceso de Transición: Report Info -> Guiding questions for transition planning. Goal -> Organize/Change. Viz/Method -> A visual flowchart diagram built with HTML/Tailwind. Interaction -> Click on a stage to reveal relevant questions. Justification -> Organizes questions into a clear, actionable process flow. Library -> Vanilla JS.
+        4. Matriz de Estrategias: Report Info -> Example transition strategies. Goal -> Inform. Viz/Method -> A structured grid of cards. Interaction -> Hover to highlight. Justification -> Clear, scannable presentation of actionable ideas. Library -> CSS/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Lato', sans-serif; background-color: #fdfcfb; }
+        .smooth-scroll { scroll-behavior: smooth; }
+        .card-hover-effect { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover-effect:hover { transform: translateY(-6px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .principle-card.active { border-color: #2dd4bf; transform: scale(1.03); }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 450px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-teal-600">Kallfü Mapu</div>
+            <div class="flex space-x-4">
+                <a href="#juego" class="text-gray-600 hover:text-teal-500 transition-colors">Juego y Aprendizaje</a>
+                <a href="#transicion" class="text-gray-600 hover:text-teal-500 transition-colors">Transición Educativa</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        
+        <section class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Jornada de Reflexión Pedagógica</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una herramienta interactiva para analizar, reflexionar y proyectar prácticas pedagógicas centradas en el juego y en una transición educativa respetuosa.</p>
+        </section>
+
+        <!-- Bloque 1: Juego y Aprendizaje -->
+        <section id="juego" class="mb-20 pt-16 -mt-16">
+            <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+                <h2 class="text-3xl font-bold text-teal-700 mb-2">Bloque 1: El Juego como Eje del Aprendizaje</h2>
+                <p class="text-gray-600 mb-8">Esta sección te invita a explorar los ocho principios pedagógicos de la Educación Parvularia. Haz clic en cada principio para entender su importancia. Luego, utiliza la herramienta de autoevaluación para reflexionar visualmente sobre tus prácticas del primer semestre y planificar acciones futuras.</p>
+
+                <div class="mb-12">
+                    <h3 class="text-2xl font-bold mb-4 text-center">Explora los Principios Pedagógicos</h3>
+                    <div id="principles-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    </div>
+                    <div id="principle-details" class="mt-6 p-6 bg-teal-50 rounded-lg text-gray-700 hidden min-h-[100px]"></div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="chart-container h-96 md:h-auto">
+                        <canvas id="principlesChart"></canvas>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-4">Autoevaluación de Prácticas</h3>
+                        <p class="text-gray-600 mb-4">Reflexiona sobre el primer semestre. Asigna un valor a cada principio según qué tan fortalecido estuvo en tu planificación y práctica diaria. Observa cómo tu reflexión toma forma en el gráfico.</p>
+                        <div id="chart-controls" class="space-y-3"></div>
+                    </div>
+                </div>
+                 <div class="mt-12">
+                    <h3 class="text-2xl font-bold mb-4 text-center">Planificador de Acciones</h3>
+                     <p class="text-gray-600 mb-6 text-center max-w-2xl mx-auto">Basado en tu reflexión, aquí tienes ejemplos de acciones concretas para fortalecer el juego en el segundo semestre. Úsalas como inspiración para tu propia planificación.</p>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="bg-amber-50 p-6 rounded-lg card-hover-effect">
+                            <h4 class="font-bold text-amber-800">Ambientes Flexibles</h4>
+                            <p class="text-sm text-amber-700">Diseñar espacios con material no estructurado que inviten a la exploración libre, rotando los materiales según los intereses de los niños para potenciar la <span class="font-bold">Actividad</span> y el <span class="font-bold">Significado</span>.</p>
+                        </div>
+                        <div class="bg-teal-50 p-6 rounded-lg card-hover-effect">
+                             <h4 class="font-bold text-teal-800">Proyectos de Juego</h4>
+                             <p class="text-sm text-teal-700">Iniciar pequeños proyectos basados en las temáticas que surgen del juego simbólico de los niños, documentando el proceso para fortalecer la <span class="font-bold">Potenciación</span> y la <span class="font-bold">Relación</span>.</p>
+                        </div>
+                         <div class="bg-rose-50 p-6 rounded-lg card-hover-effect">
+                            <h4 class="font-bold text-rose-800">Juego como Derecho</h4>
+                             <p class="text-sm text-rose-700">Asegurar bloques de tiempo extendidos y protegidos para el juego libre en la planificación diaria, resguardando el <span class="font-bold">Bienestar</span> y el principio de <span class="font-bold">Juego</span>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Transición Educativa -->
+        <section id="transicion" class="mb-12 pt-16 -mt-16">
+            <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+                <h2 class="text-3xl font-bold text-amber-700 mb-2">Bloque 2: Estrategias de Transición Educativa</h2>
+                <p class="text-gray-600 mb-8">Esta sección se enfoca en el crucial paso desde Educación Parvularia a Primero Básico. Explora el proceso de una transición efectiva haciendo clic en cada etapa del diagrama. A continuación, encontrarás una matriz con estrategias concretas para planificar un segundo semestre que asegure un paso fluido y afectuoso para los niños y sus familias.</p>
+
+                <div class="mb-12">
+                    <h3 class="text-2xl font-bold mb-6 text-center">Fases de una Transición Exitosa</h3>
+                    <div id="transition-flow" class="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-0">
+                    </div>
+                     <div id="transition-details" class="mt-6 p-6 bg-amber-50 rounded-lg text-gray-700 hidden min-h-[100px]"></div>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold mb-6 text-center">Matriz de Estrategias Colaborativas</h3>
+                    <div id="strategy-matrix" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-20">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2025 Escuela Intercultural Kallfü Mapu. Desarrollado como herramienta de apoyo pedagógico.</p>
+            <p class="text-sm text-gray-400 mt-2">Fundamentado en las Bases Curriculares de la Educación Parvularia (MINEDUC, 2018) y principios de transición educativa respetuosa.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const principlesData = {
+                bienestar: { name: 'Bienestar', color: 'teal', description: 'Busca que los niños se sientan seguros, felices y respetados. El aprendizaje se concibe como una experiencia inherentemente positiva y placentera.' },
+                unidad: { name: 'Unidad', color: 'cyan', description: 'Reconoce al niño en su totalidad: cuerpo, emociones, pensamientos y cultura. Todo está interconectado y debe ser considerado integralmente.' },
+                juego: { name: 'Juego', color: 'lime', description: 'Afirma que el juego es la actividad natural y privilegiada de la infancia, y la estrategia pedagógica por excelencia para explorar y construir conocimiento.' },
+                singularidad: { name: 'Singularidad', color: 'amber', description: 'Enfatiza que cada niño es único, con ritmos y estilos de aprendizaje propios. Valora la diversidad como un activo y promueve una enseñanza inclusiva.' },
+                actividad: { name: 'Actividad', color: 'orange', description: 'Postula que los niños son constructores activos de su propio aprendizaje. Aprenden "haciendo", explorando, experimentando y participando.' },
+                potenciacion: { name: 'Potenciación', color: 'rose', description: 'Se basa en una profunda confianza en las capacidades de los niños, animándolos a enfrentar desafíos y a aprender de sus errores para fortalecer su autonomía.' },
+                relacion: { name: 'Relación', color: 'fuchsia', description: 'Subraya la importancia vital de las interacciones sociales con adultos y pares para la construcción de la identidad y el desarrollo socioemocional.' },
+                significado: { name: 'Significado', color: 'violet', description: 'Busca que los aprendizajes tengan un sentido relevante y personal, conectando los nuevos conocimientos con sus experiencias previas y su vida diaria.' },
+            };
+
+            const transitionData = {
+                practicas: { name: 'Prácticas Actuales', description: '¿Qué prácticas o iniciativas ya implementamos para la articulación con Primero Básico? ¿Qué resultados hemos observado?' },
+                informacion: { name: 'Información Clave', description: '¿Qué información relevante (estilos de aprendizaje, intereses, desarrollo socioemocional) necesitan los docentes de 1º básico para una recepción efectiva?' },
+                familias: { name: 'Rol de las Familias', description: '¿Cómo podemos involucrar activamente a las familias, brindándoles información y apoyo para que acompañen a sus hijos e hijas en este proceso?' },
+                acciones: { name: 'Nuevas Acciones', description: '¿Qué acciones innovadoras y colaborativas podemos implementar en el segundo semestre para fortalecer la transición?' }
+            };
+
+            const strategiesData = [
+                { title: 'Visitas Recíprocas', purpose: 'Familiarizar a los niños con el nuevo espacio físico, las rutinas y los docentes de Primero Básico, reduciendo la ansiedad y generando expectativas positivas.' },
+                { title: 'Jornadas de Intercambio', purpose: 'Permitir que educadoras y docentes de 1º Básico compartan metodologías y expectativas, promoviendo una continuidad pedagógica y curricular.' },
+                { title: 'Talleres Conjuntos', purpose: 'Crear instancias lúdicas y artísticas donde niños de NT2 y 1º Básico interactúen, fomentando lazos sociales antes del inicio del año escolar.' },
+                { title: 'Material Informativo', purpose: 'Empoderar a las familias con información clara sobre el proceso de transición, el currículum de 1º Básico y cómo pueden apoyar desde el hogar.' },
+                { title: 'Proyectos Colaborativos', purpose: 'Desarrollar un proyecto educativo que abarque ambos niveles, creando un hilo conductor que dé sentido y continuidad a la experiencia de aprendizaje.' },
+                { title: 'Portafolio de Transición', purpose: 'Sistematizar y compartir información clave de cada niño (fortalezas, intereses, etc.) de manera respetuosa para una acogida personalizada en 1º Básico.' },
+            ];
+
+            // Bloque 1: Principios Pedagógicos
+            const principlesGrid = document.getElementById('principles-grid');
+            const principleDetails = document.getElementById('principle-details');
+            
+            Object.keys(principlesData).forEach(key => {
+                const data = principlesData[key];
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-lg border-2 border-gray-200 text-center font-bold cursor-pointer card-hover-effect principle-card bg-${data.color}-100 text-${data.color}-800 border-${data.color}-200`;
+                card.textContent = data.name;
+                card.dataset.key = key;
+                principlesGrid.appendChild(card);
+            });
+
+            principlesGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.principle-card');
+                if (card) {
+                    const key = card.dataset.key;
+                    const allCards = principlesGrid.querySelectorAll('.principle-card');
+                    
+                    if (card.classList.contains('active')) {
+                        card.classList.remove('active');
+                        principleDetails.classList.add('hidden');
+                    } else {
+                        allCards.forEach(c => c.classList.remove('active'));
+                        card.classList.add('active');
+                        principleDetails.innerHTML = `<p><strong class="text-gray-900">${principlesData[key].name}:</strong> ${principlesData[key].description}</p>`;
+                        principleDetails.classList.remove('hidden');
+                    }
+                }
+            });
+
+            // Bloque 1: Gráfico Radar
+            const ctx = document.getElementById('principlesChart').getContext('2d');
+            const chartControls = document.getElementById('chart-controls');
+            let chartData = Object.keys(principlesData).map(() => 3);
+
+            const principlesChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: Object.values(principlesData).map(p => p.name.match(/.{1,16}/g).join('\n')),
+                    datasets: [{
+                        label: 'Fortaleza Percibida (1-5)',
+                        data: chartData,
+                        fill: true,
+                        backgroundColor: 'rgba(45, 212, 191, 0.2)',
+                        borderColor: 'rgb(13, 148, 136)',
+                        pointBackgroundColor: 'rgb(13, 148, 136)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(13, 148, 136)'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 12 } },
+                            ticks: {
+                                beginAtZero: true,
+                                min: 0,
+                                max: 5,
+                                stepSize: 1,
+                                backdropColor: 'rgba(255, 255, 255, 0.75)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            Object.keys(principlesData).forEach((key, index) => {
+                const data = principlesData[key];
+                const controlDiv = document.createElement('div');
+                controlDiv.className = 'flex justify-between items-center';
+                controlDiv.innerHTML = `
+                    <span class="font-semibold text-sm w-1/3">${data.name}</span>
+                    <div class="flex items-center gap-2">
+                        <button data-index="${index}" data-change="-1" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-red-200 text-lg font-bold">-</button>
+                        <span id="value-${index}" class="w-8 text-center font-bold text-lg text-teal-600">${chartData[index]}</span>
+                        <button data-index="${index}" data-change="1" class="w-8 h-8 rounded-full bg-gray-200 hover:bg-green-200 text-lg font-bold">+</button>
+                    </div>
+                `;
+                chartControls.appendChild(controlDiv);
+            });
+
+            chartControls.addEventListener('click', (e) => {
+                if(e.target.tagName === 'BUTTON') {
+                    const index = parseInt(e.target.dataset.index);
+                    const change = parseInt(e.target.dataset.change);
+                    let currentValue = chartData[index];
+                    currentValue += change;
+                    if (currentValue >= 1 && currentValue <= 5) {
+                        chartData[index] = currentValue;
+                        document.getElementById(`value-${index}`).textContent = currentValue;
+                        principlesChart.update();
+                    }
+                }
+            });
+            
+            // Bloque 2: Flujo de Transición
+            const transitionFlow = document.getElementById('transition-flow');
+            const transitionDetails = document.getElementById('transition-details');
+            let count = 0;
+            Object.keys(transitionData).forEach(key => {
+                const data = transitionData[key];
+                
+                if (count > 0) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'text-amber-400 font-bold text-2xl mx-4 hidden md:block';
+                    arrow.innerHTML = '&#8594;';
+                    transitionFlow.appendChild(arrow);
+                    const arrow_mobile = document.createElement('div');
+                    arrow_mobile.className = 'text-amber-400 font-bold text-2xl my-2 md:hidden';
+                    arrow_mobile.innerHTML = '&#8595;';
+                    transitionFlow.appendChild(arrow_mobile);
+                }
+
+                const stage = document.createElement('div');
+                stage.className = 'p-3 text-center rounded-lg border-2 border-amber-200 bg-amber-100 text-amber-800 font-semibold cursor-pointer card-hover-effect principle-card flex-1';
+                stage.textContent = data.name;
+                stage.dataset.key = key;
+                transitionFlow.appendChild(stage);
+                count++;
+            });
+
+            transitionFlow.addEventListener('click', (e) => {
+                 const stage = e.target.closest('.principle-card');
+                 if (stage) {
+                    const key = stage.dataset.key;
+                    const allStages = transitionFlow.querySelectorAll('.principle-card');
+
+                    if (stage.classList.contains('active')) {
+                        stage.classList.remove('active');
+                        transitionDetails.classList.add('hidden');
+                    } else {
+                        allStages.forEach(s => s.classList.remove('active'));
+                        stage.classList.add('active');
+                        transitionDetails.innerHTML = `<p><strong class="text-gray-900">${transitionData[key].name}:</strong> ${transitionData[key].description}</p>`;
+                        transitionDetails.classList.remove('hidden');
+                    }
+                 }
+            });
+
+            // Bloque 2: Matriz de Estrategias
+            const strategyMatrix = document.getElementById('strategy-matrix');
+            strategiesData.forEach(strategy => {
+                const card = document.createElement('div');
+                card.className = 'bg-stone-100 p-6 rounded-lg border border-stone-200 card-hover-effect';
+                card.innerHTML = `
+                    <h4 class="font-bold text-lg text-gray-800 mb-2">${strategy.title}</h4>
+                    <p class="text-gray-600 text-sm">${strategy.purpose}</p>
+                `;
+                strategyMatrix.appendChild(card);
+            });
+
+            // Smooth scroll
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
